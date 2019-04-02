@@ -16,23 +16,23 @@ iv. Error handling: symbol used but not defined, invalid instruction/register et
 #include <string.h>
 using namespace std;
 /* A utility function to reverse a string  */
-void reverse(char str[], int length) 
-{ 
-    int start = 0; 
-    int end = length -1; 
-    while (start < end) 
-    { 
-        swap(*(str+start), *(str+end)); 
-        start++; 
-        end--; 
-    } 
-} 
-// Implementation of itoa() 
-char* itoa(int num, char* str, int base) 
-{ 
+void reverse(char str[], int length)
+{
+    int start = 0;
+    int end = length -1;
+    while (start < end)
+    {
+        swap(*(str+start), *(str+end));
+        start++;
+        end--;
+    }
+}
+// Implementation of itoa()
+char* itoa(int num, char* str, int base)
+{
     sprintf( str, "%d", num );
     return str;
-} 
+}
 //--------------
 struct optab{
     string mnemonic;
@@ -66,6 +66,23 @@ int opreand_to_code(string reg){
         return 4;
     return 0;
 }
+int cond_to_code(string condn){
+    if(condn=="EQ")
+        return 1;
+    if(condn=="LT")
+        return 2;
+    if(condn=="GT")
+        return 3;
+    if(condn=="LE")
+        return 4;
+	if(condn=="GE")
+        return 5;
+	if(condn=="NE")
+        return 6;
+    if(condn=="ANY")
+        return 7;
+    return 0;
+}
 //-------template func for all tables
 template <class T>
 int srchtab(vector<T> vec, string key) {
@@ -82,6 +99,7 @@ private:
     vector<symtab> symbol_table;
     vector<littab> literal_table;
     vector<pooltab> pool_table;
+	string intermediate_code;
     ifstream myfile;
     void init_table();
     void read_file();
@@ -94,6 +112,7 @@ private:
     assembler();
     void process();
     void print();
+	void printtofiles();
 };
 assembler::assembler(){
     init_table();
@@ -134,13 +153,19 @@ void assembler::read_file(){
 }
 void assembler::process(){
     int lc=0,i,pos,pooltable_pointer=0;
-    string line,intermediate_code;
+    string line;
     cout<<"-----------------------------";
     cout<<"\n Processing...\n";
     if(myfile.is_open()){
         while ( getline (myfile,line) ){
             i=0;
             cout<<lc<<"\t"<<line<<endl;
+			char arr[20];
+			//adiition
+			itoa(lc,arr,10);
+			intermediate_code+=string(arr);
+			intermediate_code+="\t";
+		
             if((line[0])!='\t'){//label
                 //add to symbol table
                 cout<<"label found"<<endl;
@@ -175,7 +200,39 @@ void assembler::process(){
                     lc++;
                     string operand1;
                     string operand2;
-                    if(mnemonic=="STOP"){
+		    if(mnemonic=="BC"){
+			    int regno;
+			    string operand1,operand2;
+			while(line[i]!=','){
+                            operand1+=line[i];
+                            i++;
+                        }
+			regno=cond_to_code(operand1);
+			char arr[20];
+			//adiition
+			itoa(regno,arr,10);
+                        intermediate_code+="("+string(arr)+")";
+                        i++;
+                        while(i<line.size()-1){
+                            operand2+=line[i];
+                            i++;
+                        }
+                        if(operand2[0]=='='){
+                            literal_table.push_back(littab{operand2,0});
+                            char arr[20];
+                            itoa(literal_table.size()-1,arr,10);
+                            intermediate_code+="(L,"+string(arr)+")";
+                            pool_table[pooltable_pointer].num_literal++;
+                        }else{
+                            if(srchtab(symbol_table,operand2)==-1){
+                                symbol_table.push_back(symtab{operand2,0,0});
+                            }
+                            int pos=srchtab(symbol_table,operand2);
+                            char arr[20];
+                            itoa(pos,arr,10);
+                            intermediate_code+="(S,"+string(arr)+")";
+                        }
+		    }else if(mnemonic=="STOP"){
                     }else if(mnemonic=="READ"||mnemonic=="PRINT"){
                         while(i<line.size()-1){
                             operand2+=line[i];
@@ -205,6 +262,10 @@ void assembler::process(){
                         }
                         char arr[20];
                         regno=opreand_to_code(operand1);
+			if(regno==0){
+				cout<<"Invalid register"<<endl;
+				exit(0);
+			}
                         itoa(regno,arr,10);
                         intermediate_code+="("+string(arr)+")";
                         i++;
@@ -289,12 +350,19 @@ void assembler::process(){
 						print_littab();
 						print_pooltab();
                     }
-
                 }
             }
             intermediate_code+="\n";
         }
     }
+	vector<symtab>::iterator ptr;
+    for (ptr = symbol_table.begin(); ptr < symbol_table.end(); ptr++)
+		if(ptr->address==0){
+			cout<<"Symbol:"<<ptr->symbol<<" used but not declared"<<endl;
+			exit(0);
+		}
+
+
     cout<<"----------INTERMEDIATE CODE---------------------"<<endl;
     cout<<intermediate_code<<endl;
 }
@@ -334,10 +402,27 @@ void assembler::print(){
     print_symtab();
     print_littab();
 }
+void assembler::printtofiles(){
+	ofstream myfile;
+	myfile.open("Intemediate.txt");
+	myfile<<intermediate_code<<endl;
+	myfile.close();
+	myfile.open("Symbols.txt");
+	vector<symtab>::iterator ptr;
+    for (ptr = symbol_table.begin(); ptr < symbol_table.end(); ptr++)
+        myfile <<ptr->symbol << "\t"<< ptr->address<<"\t"<<ptr->length<<endl;
+    myfile.close();
+	myfile.open("Literals.txt");
+	vector<littab>::iterator ptr1;
+    for (ptr1 = literal_table.begin(); ptr1 < literal_table.end(); ptr1++)
+        myfile <<ptr1->value << "\t"<< ptr1->address<<endl;
+	myfile.close();
+	
+}
 int main()
 {
     assembler a;
     a.process();
     a.print();
+    a.printtofiles();
 }
-
