@@ -9,7 +9,7 @@ E'	->	+TE'|NULL
 T	->	FT'  
 T'	->	\*FT'|NULL  
 F	->	(E)|a  
-Accepet strings  
+Accepted strings  
 a+a\*a
 a\*a+a  
 Rejected strings  
