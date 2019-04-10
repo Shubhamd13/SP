@@ -8,7 +8,7 @@ teacher should provide input file for this assignment )
 #include<string.h>
 using namespace std;
 string searchfile(string arr,int line_no){
-    ifstream myfile(arr);
+    ifstream myfile(arr.c_str());
     string value,address,length;
     while(myfile.eof()==false && line_no!=-1){
             if(arr=="Symbols.txt")

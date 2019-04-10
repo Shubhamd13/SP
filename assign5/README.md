@@ -1,7 +1,7 @@
 # For Linux only
 ## Compile using following commands
 ```
-g++ sp5.cpp
+gcc sp5.c
 ```
 For the grammar  
 E ->  TE'  
