@@ -1,4 +1,6 @@
 # For Linux only
+calc.l and calc.y are files to be written  
+other files are generated upon compilation  
 ## Compile using following commands
 ```
 lex calc.l
