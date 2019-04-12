@@ -7,7 +7,7 @@
 %left '%' '(' ')'
 %precedence NEG 
 %%
-line: stmt{
+line: stmt '\n'{
 	printf("\nResult=%d\n",$$);
          return 0;
         };

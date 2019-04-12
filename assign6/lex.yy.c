@@ -741,7 +741,7 @@ case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
 #line 13 "calc.l"
-return 0;
+return *yytext;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
