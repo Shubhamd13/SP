@@ -1,4 +1,8 @@
 # For Linux only
+## To install lex and yacc
+```
+sudo apt-get install bison flex
+```
 calc.l and calc.y are files to be written  
 other files are generated upon compilation  
 ## Compile using following commands
