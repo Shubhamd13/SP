@@ -1,0 +1,8 @@
+int main()
+{
+printf("hi printf");
+int a,b;
+c=a+b;
+res=a*b/c;
+}
+
